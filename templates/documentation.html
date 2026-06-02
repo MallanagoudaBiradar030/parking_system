@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+
+{% block title %}Project Documentation{% endblock %}
+
+{% block page_heading %}DBMS Project Documentation{% endblock %}
+{% block page_subheading %}Complete academic reference documenting the database design, architecture, and DBMS concepts implemented{% endblock %}
+
+{% block content %}
+<div class="academic-doc">
+    
+    <!-- Section 1: Abstract -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-bookmark" style="margin-right: 8px;"></i> Abstract</h2>
+        <p>
+            <strong>PARKEASE</strong> is a full-stack Parking Lot Database Management System developed as a DBMS mini project.
+            The system automates the complete parking management workflow — from vehicle check-in and automatic slot allocation, 
+            to real-time occupancy tracking, dynamic fee calculation at checkout, and comprehensive revenue analytics.
+        </p>
+        <p>
+            The project demonstrates practical implementation of core DBMS concepts including relational schema design, 
+            referential integrity constraints, database views, triggers, stored procedures, aggregate queries, multi-table joins, 
+            subqueries, and indexing — all integrated within a production-quality Flask web application with a premium dark-themed UI.
+        </p>
+        <div style="margin-top: 12px; padding: 14px 18px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 10px; display: flex; align-items: flex-start; gap: 12px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--color-primary); font-size: 1.1rem; margin-top: 2px;"></i>
+            <span>
+                <strong style="color: var(--text-primary);">Developed By:</strong> Mallanagouda S Biradar, Yashwanth R K, Varsha<br>
+                <strong style="color: var(--text-primary);">Subject:</strong> Database Management Systems (DBMS) Mini Project
+            </span>
+        </div>
+    </div>
+    
+    <!-- Section 2: System Architecture -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-sitemap" style="margin-right: 8px;"></i> System Architecture</h2>
+        <p>
+            The application follows a classic <strong>3-Tier Architecture</strong> pattern separating concerns between 
+            the presentation layer (HTML/CSS/JS), the application logic layer (Flask/Python), and the data persistence 
+            layer (MySQL Database).
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+            <!-- Tier 1 -->
+            <div style="text-align: center; padding: 20px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px;">
+                <i class="fa-solid fa-display" style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px; display: block;"></i>
+                <strong style="display: block; font-family: 'Outfit', sans-serif; margin-bottom: 6px;">Presentation Layer</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">HTML5, CSS3, JavaScript, Chart.js, Jinja2 Templates</span>
+            </div>
+            <!-- Tier 2 -->
+            <div style="text-align: center; padding: 20px; background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 12px;">
+                <i class="fa-solid fa-server" style="font-size: 2rem; color: var(--color-secondary); margin-bottom: 10px; display: block;"></i>
+                <strong style="display: block; font-family: 'Outfit', sans-serif; margin-bottom: 6px;">Application Layer</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Python Flask, Session Auth, Routing, Business Logic</span>
+            </div>
+            <!-- Tier 3 -->
+            <div style="text-align: center; padding: 20px; background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.15); border-radius: 12px;">
+                <i class="fa-solid fa-database" style="font-size: 2rem; color: var(--color-accent); margin-bottom: 10px; display: block;"></i>
+                <strong style="display: block; font-family: 'Outfit', sans-serif; margin-bottom: 6px;">Data Layer</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">MySQL 8.0, InnoDB, Views, Triggers, Stored Procedures</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 3: ER Diagram / Schema -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-diagram-project" style="margin-right: 8px;"></i> Entity-Relationship Model</h2>
+        <p>
+            The database consists of <strong>4 core entities</strong> connected through referential integrity constraints 
+            (foreign keys) with <code>ON DELETE CASCADE</code> behavior.
+        </p>
+        
+        <!-- ER Diagram Visual -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+            <!-- Entity: User -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;">
+                <div style="background: rgba(99, 102, 241, 0.12); padding: 12px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-user-shield" style="color: var(--color-primary);"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">user</strong>
+                </div>
+                <div style="padding: 14px 18px; font-size: 0.85rem; line-height: 1.8; color: var(--text-secondary);">
+                    <div><span style="color: var(--color-warning);">🔑 PK</span> <code>user_id</code> INT AUTO_INCREMENT</div>
+                    <div><span style="color: var(--color-secondary);">UQ</span> <code>username</code> VARCHAR(50)</div>
+                    <div><code>password</code> VARCHAR(256) — SHA-256 hash</div>
+                    <div><code>full_name</code> VARCHAR(100)</div>
+                    <div><code>created_at</code> TIMESTAMP</div>
+                </div>
+            </div>
+            
+            <!-- Entity: Vehicle -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;">
+                <div style="background: rgba(6, 182, 212, 0.12); padding: 12px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-car" style="color: var(--color-secondary);"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">vehicle</strong>
+                </div>
+                <div style="padding: 14px 18px; font-size: 0.85rem; line-height: 1.8; color: var(--text-secondary);">
+                    <div><span style="color: var(--color-warning);">🔑 PK</span> <code>vehicle_id</code> INT AUTO_INCREMENT</div>
+                    <div><span style="color: var(--color-secondary);">UQ</span> <code>license_plate</code> VARCHAR(20)</div>
+                    <div><code>vehicle_type</code> VARCHAR(20) — CHECK(Car|Bike|Truck)</div>
+                    <div><code>owner_name</code> VARCHAR(100)</div>
+                    <div><code>owner_phone</code> VARCHAR(15)</div>
+                </div>
+            </div>
+            
+            <!-- Entity: Parking Slot -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;">
+                <div style="background: rgba(16, 185, 129, 0.12); padding: 12px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-square-parking" style="color: var(--color-success);"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">parking_slot</strong>
+                </div>
+                <div style="padding: 14px 18px; font-size: 0.85rem; line-height: 1.8; color: var(--text-secondary);">
+                    <div><span style="color: var(--color-warning);">🔑 PK</span> <code>slot_id</code> INT AUTO_INCREMENT</div>
+                    <div><span style="color: var(--color-secondary);">UQ</span> <code>slot_number</code> VARCHAR(10)</div>
+                    <div><code>slot_type</code> VARCHAR(20) — CHECK(Car|Bike|Truck)</div>
+                    <div><code>status</code> VARCHAR(20) — CHECK(Available|Occupied)</div>
+                </div>
+            </div>
+            
+            <!-- Entity: Parking Transaction -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;">
+                <div style="background: rgba(245, 158, 11, 0.12); padding: 12px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-warning);"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">parking_transaction</strong>
+                </div>
+                <div style="padding: 14px 18px; font-size: 0.85rem; line-height: 1.8; color: var(--text-secondary);">
+                    <div><span style="color: var(--color-warning);">🔑 PK</span> <code>transaction_id</code> INT AUTO_INCREMENT</div>
+                    <div><span style="color: var(--color-danger);">🔗 FK</span> <code>vehicle_id</code> → vehicle(vehicle_id)</div>
+                    <div><span style="color: var(--color-danger);">🔗 FK</span> <code>slot_id</code> → parking_slot(slot_id)</div>
+                    <div><code>entry_time</code> DATETIME</div>
+                    <div><code>exit_time</code> DATETIME (nullable)</div>
+                    <div><code>fee</code> DECIMAL(10,2)</div>
+                    <div><code>status</code> VARCHAR(20) — CHECK(Active|Completed)</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Relationships -->
+        <div style="margin-top: 20px; padding: 16px 20px; background: rgba(0,0,0,0.15); border-radius: 10px; border: 1px solid var(--glass-border);">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--color-primary); margin-bottom: 10px;">
+                <i class="fa-solid fa-link" style="margin-right: 6px;"></i> Relationships
+            </h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; color: var(--text-secondary);">
+                <li><i class="fa-solid fa-arrow-right" style="color: var(--color-secondary); margin-right: 8px;"></i> <code>parking_transaction.vehicle_id</code> → <code>vehicle.vehicle_id</code> (Many-to-One, ON DELETE CASCADE)</li>
+                <li><i class="fa-solid fa-arrow-right" style="color: var(--color-secondary); margin-right: 8px;"></i> <code>parking_transaction.slot_id</code> → <code>parking_slot.slot_id</code> (Many-to-One, ON DELETE CASCADE)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Section 4: Normalization -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-layer-group" style="margin-right: 8px;"></i> Normalization Analysis</h2>
+        <p>
+            All tables in the PARKEASE schema are designed to satisfy up to <strong>Boyce-Codd Normal Form (BCNF)</strong>, 
+            ensuring elimination of data redundancy, partial dependencies, and transitive dependencies.
+        </p>
+        
+        <div class="norm-grid">
+            <div class="norm-card">
+                <h3><i class="fa-solid fa-1" style="margin-right: 6px;"></i> First Normal Form (1NF)</h3>
+                <ul>
+                    <li><i class="fa-solid fa-check"></i> All columns contain atomic (indivisible) values</li>
+                    <li><i class="fa-solid fa-check"></i> Each row is uniquely identified by a primary key</li>
+                    <li><i class="fa-solid fa-check"></i> No repeating groups or multi-valued attributes</li>
+                </ul>
+            </div>
+            
+            <div class="norm-card">
+                <h3><i class="fa-solid fa-2" style="margin-right: 6px;"></i> Second Normal Form (2NF)</h3>
+                <ul>
+                    <li><i class="fa-solid fa-check"></i> Already in 1NF</li>
+                    <li><i class="fa-solid fa-check"></i> No partial dependencies (all PKs are single-column)</li>
+                    <li><i class="fa-solid fa-check"></i> Every non-key attribute is fully functionally dependent on the PK</li>
+                </ul>
+            </div>
+            
+            <div class="norm-card">
+                <h3><i class="fa-solid fa-3" style="margin-right: 6px;"></i> Third Normal Form (3NF)</h3>
+                <ul>
+                    <li><i class="fa-solid fa-check"></i> Already in 2NF</li>
+                    <li><i class="fa-solid fa-check"></i> No transitive dependencies exist</li>
+                    <li><i class="fa-solid fa-check"></i> All non-key attributes depend only on the primary key</li>
+                </ul>
+            </div>
+            
+            <div class="norm-card">
+                <h3><i class="fa-solid fa-shield-halved" style="margin-right: 6px;"></i> BCNF (Boyce-Codd NF)</h3>
+                <ul>
+                    <li><i class="fa-solid fa-check"></i> Already in 3NF</li>
+                    <li><i class="fa-solid fa-check"></i> Every determinant is a candidate key</li>
+                    <li><i class="fa-solid fa-check"></i> No anomalies in any functional dependency</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 5: Views -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-eye" style="margin-right: 8px;"></i> Database Views</h2>
+        <p>
+            Views provide virtual tables that simplify complex multi-table queries. They are used throughout the 
+            application to decouple the presentation layer from raw SQL complexity.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+            <div style="padding: 16px 20px; background: rgba(0,0,0,0.15); border-radius: 10px; border-left: 3px solid var(--color-primary);">
+                <strong style="font-family: 'Outfit', sans-serif; color: var(--color-primary); display: block; margin-bottom: 6px;">vw_currently_parked</strong>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Joins <code>parking_transaction</code>, <code>vehicle</code>, and <code>parking_slot</code> tables 
+                    using INNER JOINs to display all currently active parking sessions. Used by the Parked Roster and Vehicle Exit pages.
+                </span>
+            </div>
+            
+            <div style="padding: 16px 20px; background: rgba(0,0,0,0.15); border-radius: 10px; border-left: 3px solid var(--color-secondary);">
+                <strong style="font-family: 'Outfit', sans-serif; color: var(--color-secondary); display: block; margin-bottom: 6px;">vw_slot_utilization</strong>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Aggregates <code>parking_slot</code> data using GROUP BY and CASE expressions to calculate occupied vs. available 
+                    counts and occupancy percentages per vehicle type. Powers the Dashboard and Entry form capacity indicators.
+                </span>
+            </div>
+            
+            <div style="padding: 16px 20px; background: rgba(0,0,0,0.15); border-radius: 10px; border-left: 3px solid var(--color-accent);">
+                <strong style="font-family: 'Outfit', sans-serif; color: var(--color-accent); display: block; margin-bottom: 6px;">vw_monthly_revenue_summary</strong>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Joins <code>parking_transaction</code> with <code>vehicle</code> and uses GROUP BY with DATE_FORMAT 
+                    to compute monthly revenue totals categorized by vehicle type. Drives the Revenue Report analytics page.
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 6: Triggers -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-bolt" style="margin-right: 8px;"></i> Database Triggers</h2>
+        <p>
+            Triggers automate slot status management without requiring explicit application-layer updates, ensuring 
+            data consistency at the database engine level.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+            <div style="padding: 20px; background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-circle-arrow-right" style="color: var(--color-success); font-size: 1.2rem;"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">trg_after_transaction_insert</strong>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    <strong>Event:</strong> AFTER INSERT on <code>parking_transaction</code><br>
+                    <strong>Action:</strong> When a new Active transaction is created, automatically updates the 
+                    associated <code>parking_slot.status</code> from <em>Available</em> → <em>Occupied</em>.
+                </p>
+            </div>
+            
+            <div style="padding: 20px; background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-circle-arrow-left" style="color: var(--color-danger); font-size: 1.2rem;"></i>
+                    <strong style="font-family: 'Outfit', sans-serif;">trg_after_transaction_update</strong>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                    <strong>Event:</strong> AFTER UPDATE on <code>parking_transaction</code><br>
+                    <strong>Action:</strong> When a transaction status transitions from <em>Active</em> → <em>Completed</em>, 
+                    automatically releases the slot by updating status back to <em>Available</em>.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 7: Stored Procedures -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-gears" style="margin-right: 8px;"></i> Stored Procedures</h2>
+        <p>
+            Stored procedures encapsulate complex multi-step transactional logic at the database level, 
+            ensuring atomicity and consistency. They are called from Python using <code>cursor.callproc()</code>.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+            <div style="padding: 20px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="badge badge-success" style="font-size: 0.65rem;">
+                        <i class="fa-solid fa-right-to-bracket"></i> CHECK-IN
+                    </span>
+                    <strong style="font-family: 'Outfit', sans-serif;">sp_park_vehicle</strong>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                    Handles the complete vehicle entry workflow atomically:
+                </p>
+                <ul style="list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Upsert vehicle record (insert or update)</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Prevent double parking (checks active transactions)</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Auto-assign first available matching slot</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Create active parking transaction</li>
+                </ul>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Signature:</strong> <code>sp_park_vehicle(IN plate, IN type, IN name, IN phone, OUT slot_number, OUT transaction_id)</code>
+                </div>
+            </div>
+            
+            <div style="padding: 20px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="badge badge-occupied" style="font-size: 0.65rem;">
+                        <i class="fa-solid fa-right-from-bracket"></i> CHECK-OUT
+                    </span>
+                    <strong style="font-family: 'Outfit', sans-serif;">sp_check_out_vehicle</strong>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                    Handles the complete vehicle exit and billing workflow atomically:
+                </p>
+                <ul style="list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Verify transaction exists and is active</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Calculate parking duration (round up to nearest hour)</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Apply tiered pricing (Bike: $2, Car: $5, Truck: $10 per hr)</li>
+                    <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Update transaction to Completed with fee and exit time</li>
+                </ul>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                    <strong>Signature:</strong> <code>sp_check_out_vehicle(IN txn_id, OUT plate, OUT slot, OUT entry, OUT exit, OUT fee)</code>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 8: SQL Queries Demonstrated -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-code" style="margin-right: 8px;"></i> SQL Query Types Demonstrated</h2>
+        <p>
+            The project showcases a comprehensive range of SQL operations across the application's backend.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 16px;">
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--color-primary); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">DQL — SELECT + WHERE</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Parameterized queries with dynamic filters</span>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-link" style="color: var(--color-secondary); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">Multi-table INNER JOINs</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">3-way joins across transaction/vehicle/slot</span>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-chart-pie" style="color: var(--color-accent); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">GROUP BY + Aggregates</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">COUNT, SUM, AVG, ROUND with grouping</span>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-filter" style="color: var(--color-success); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">Subqueries</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Nested in SELECT and WHERE clauses</span>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-toggle-on" style="color: var(--color-warning); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">CASE Expressions</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Conditional aggregations and status logic</span>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 18px; background: rgba(0,0,0,0.12); border-radius: 10px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-bolt-lightning" style="color: var(--color-danger); font-size: 1.1rem; width: 20px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block; font-size: 0.9rem;">Indexing</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Optimized search on plates, status, dates</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 9: Technology Stack -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-layer-group" style="margin-right: 8px;"></i> Technology Stack</h2>
+        
+        <div class="table-container" style="margin-top: 12px;">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Technology</th>
+                        <th>Role</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-brands fa-python" style="color: var(--color-warning); margin-right: 8px;"></i>Python 3
+                        </td>
+                        <td>Backend Language</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Core application logic and server-side processing</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-solid fa-flask" style="color: var(--color-secondary); margin-right: 8px;"></i>Flask
+                        </td>
+                        <td>Web Framework</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Routing, sessions, template rendering, flash messaging</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-solid fa-database" style="color: var(--color-primary); margin-right: 8px;"></i>MySQL 8.0
+                        </td>
+                        <td>Database Engine</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">InnoDB storage engine with referential integrity</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-brands fa-html5" style="color: var(--color-danger); margin-right: 8px;"></i>HTML5 + Jinja2
+                        </td>
+                        <td>Templates</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Dynamic server-side template rendering with inheritance</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-brands fa-css3-alt" style="color: var(--color-accent); margin-right: 8px;"></i>CSS3
+                        </td>
+                        <td>Styling</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Glassmorphism, CSS variables, animations, responsive grids</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-brands fa-js" style="color: var(--color-warning); margin-right: 8px;"></i>JavaScript
+                        </td>
+                        <td>Client Interaction</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Live search, fee estimation, Chart.js visualizations</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">
+                            <i class="fa-solid fa-chart-bar" style="color: var(--color-success); margin-right: 8px;"></i>Chart.js
+                        </td>
+                        <td>Data Visualization</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">Doughnut and bar charts for occupancy and revenue analytics</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Section 10: Future Scope -->
+    <div class="glass-card doc-section">
+        <h2><i class="fa-solid fa-rocket" style="margin-right: 8px;"></i> Future Enhancements</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-qrcode" style="color: var(--color-primary); font-size: 1.2rem;"></i>
+                <span>QR Code Parking Tickets</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-credit-card" style="color: var(--color-secondary); font-size: 1.2rem;"></i>
+                <span>Online Payment Gateway</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-mobile-screen-button" style="color: var(--color-accent); font-size: 1.2rem;"></i>
+                <span>Mobile Application</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-camera" style="color: var(--color-success); font-size: 1.2rem;"></i>
+                <span>License Plate Recognition (AI)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-envelope" style="color: var(--color-warning); font-size: 1.2rem;"></i>
+                <span>Email / SMS Notifications</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 1px solid var(--glass-border); font-size: 0.9rem;">
+                <i class="fa-solid fa-chart-line" style="color: var(--color-danger); font-size: 1.2rem;"></i>
+                <span>Advanced Analytics Dashboard</span>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

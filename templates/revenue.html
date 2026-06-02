@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block title %}Revenue Report{% endblock %}
+
+{% block page_heading %}Revenue Analytics{% endblock %}
+{% block page_subheading %}Monthly financial summaries, earnings trends, and transaction volume breakdowns{% endblock %}
+
+{% block content %}
+<!-- Revenue KPI Summary Cards -->
+{% set total_revenue = reports|sum(attribute='monthly_revenue') if reports else 0 %}
+{% set total_trips = reports|sum(attribute='total_completed_trips') if reports else 0 %}
+
+<section class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="glass-card kpi-card revenue-slots">
+        <div class="kpi-info">
+            <h3>Total Revenue</h3>
+            <div class="kpi-value">${{ "%.2f"|format(total_revenue|float) }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-sack-dollar"></i>
+        </div>
+    </div>
+    
+    <div class="glass-card kpi-card total-slots">
+        <div class="kpi-info">
+            <h3>Total Transactions</h3>
+            <div class="kpi-value">{{ total_trips }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-receipt"></i>
+        </div>
+    </div>
+    
+    <div class="glass-card kpi-card available-slots">
+        <div class="kpi-info">
+            <h3>Avg Fee / Trip</h3>
+            <div class="kpi-value">${{ "%.2f"|format((total_revenue|float / total_trips) if total_trips > 0 else 0) }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+    </div>
+</section>
+
+<!-- Charts and Details Row -->
+<section class="dashboard-row">
+    
+    <!-- Left Column: Earnings Trend Bar Chart -->
+    <div class="glass-card" style="display: flex; flex-direction: column;">
+        <div class="panel-header">
+            <h2><i class="fa-solid fa-chart-column" style="color: var(--color-primary); margin-right: 8px;"></i> Monthly Earnings Trend</h2>
+        </div>
+        
+        {% if labels %}
+            <div style="position: relative; width: 100%; height: 300px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                <i class="fa-solid fa-chart-bar" style="font-size: 2.5rem; opacity: 0.15; margin-bottom: 12px; display: block;"></i>
+                No completed transactions to chart yet.
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Right Column: Revenue by Vehicle Type Donut -->
+    <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
+        <div class="panel-header">
+            <h2>Revenue by Type</h2>
+        </div>
+        
+        {% if reports %}
+            <div style="position: relative; max-height: 220px; display: flex; align-items: center; justify-content: center; width: 100%;">
+                <canvas id="typeChart" style="max-height: 220px; max-width: 220px;"></canvas>
+            </div>
+            
+            <!-- Type Breakdown List -->
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                {% set type_totals = {} %}
+                {% for row in reports %}
+                    {% if row.vehicle_type in type_totals %}
+                        {% if type_totals.update({row.vehicle_type: type_totals[row.vehicle_type] + row.monthly_revenue|float}) %}{% endif %}
+                    {% else %}
+                        {% if type_totals.update({row.vehicle_type: row.monthly_revenue|float}) %}{% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% for vtype, amount in type_totals.items() %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.03);">
+                        <span style="font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid {% if vtype == 'Car' %}fa-car-side{% elif vtype == 'Bike' %}fa-motorcycle{% else %}fa-truck{% endif %}" style="width: 16px; color: {% if vtype == 'Car' %}var(--color-primary){% elif vtype == 'Bike' %}var(--color-secondary){% else %}var(--color-accent){% endif %};"></i>
+                            {{ vtype }}
+                        </span>
+                        <span style="color: var(--color-success); font-weight: 700; font-family: 'Outfit', sans-serif;">${{ "%.2f"|format(amount) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                <i class="fa-solid fa-circle-dollar-to-slot" style="font-size: 2rem; opacity: 0.15; margin-bottom: 12px; display: block;"></i>
+                No revenue data available yet.
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Detailed Monthly Revenue Breakdown Table -->
+<div class="glass-card" style="display: flex; flex-direction: column;">
+    <div class="panel-header">
+        <h2><i class="fa-solid fa-table-list" style="color: var(--color-secondary); margin-right: 8px;"></i> Detailed Monthly Breakdown</h2>
+    </div>
+    
+    <div class="table-container">
+        {% if reports %}
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Vehicle Category</th>
+                        <th>Completed Trips</th>
+                        <th>Monthly Revenue</th>
+                        <th>Avg Fee / Trip</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in reports %}
+                        <tr>
+                            <td style="font-weight: 600; font-family: 'Outfit', sans-serif;">
+                                <i class="fa-solid fa-calendar-day" style="color: var(--color-primary); margin-right: 6px;"></i>
+                                {{ row.revenue_month }}
+                            </td>
+                            <td>
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    {% if row.vehicle_type == 'Car' %}
+                                        <i class="fa-solid fa-car-side" style="color: var(--color-primary);"></i>
+                                    {% elif row.vehicle_type == 'Bike' %}
+                                        <i class="fa-solid fa-motorcycle" style="color: var(--color-secondary);"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-truck" style="color: var(--color-accent);"></i>
+                                    {% endif %}
+                                    {{ row.vehicle_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary" style="font-size: 0.7rem;">
+                                    <i class="fa-solid fa-hashtag"></i>
+                                    {{ row.total_completed_trips }}
+                                </span>
+                            </td>
+                            <td style="font-weight: 700; color: var(--color-success); font-family: 'Outfit', sans-serif; font-size: 1rem;">
+                                ${{ "%.2f"|format(row.monthly_revenue|float) }}
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 0.9rem;">
+                                ${{ "%.2f"|format((row.monthly_revenue|float / row.total_completed_trips) if row.total_completed_trips > 0 else 0) }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 3rem; opacity: 0.15; margin-bottom: 16px; display: block;"></i>
+                <h3 style="font-family: 'Outfit', sans-serif; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">No Revenue Records</h3>
+                <p style="font-size: 0.9rem; max-width: 400px; margin: 0 auto; line-height: 1.5;">
+                    Revenue reports will populate once vehicles complete their parking transactions and fees are collected.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Monthly Earnings Bar Chart
+        const revenueCanvas = document.getElementById('revenueChart');
+        if (revenueCanvas) {
+            const ctx = revenueCanvas.getContext('2d');
+            
+            const labels = {{ labels|tojson }};
+            const earnings = {{ earnings|tojson }};
+            
+            // Create gradient fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.6)');
+            gradient.addColorStop(1, 'rgba(6, 182, 212, 0.1)');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Earnings ($)',
+                        data: earnings,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(99, 102, 241, 0.8)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        hoverBackgroundColor: 'rgba(99, 102, 241, 0.85)',
+                        hoverBorderColor: 'rgba(99, 102, 241, 1)',
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#fff',
+                            bodyColor: '#9ca3af',
+                            borderColor: 'rgba(255,255,255,0.08)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Revenue: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ca3af',
+                                font: { family: 'Plus Jakarta Sans', size: 12 }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.04)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#9ca3af',
+                                font: { family: 'Plus Jakarta Sans', size: 12 },
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Revenue by Vehicle Type Doughnut Chart
+        const typeCanvas = document.getElementById('typeChart');
+        if (typeCanvas) {
+            const ctx2 = typeCanvas.getContext('2d');
+            
+            // Aggregate revenue by type from Jinja
+            const typeData = {};
+            {% for row in reports %}
+                if (!typeData['{{ row.vehicle_type }}']) typeData['{{ row.vehicle_type }}'] = 0;
+                typeData['{{ row.vehicle_type }}'] += {{ row.monthly_revenue|float }};
+            {% endfor %}
+            
+            const typeLabels = Object.keys(typeData);
+            const typeValues = Object.values(typeData);
+            
+            const colors = {
+                'Car': '#6366f1',
+                'Bike': '#06b6d4',
+                'Truck': '#8b5cf6'
+            };
+            
+            const bgColors = typeLabels.map(t => colors[t] || '#10b981');
+            
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: typeLabels,
+                    datasets: [{
+                        data: typeValues,
+                        backgroundColor: bgColors,
+                        borderColor: 'rgba(255, 255, 255, 0.05)',
+                        borderWidth: 1,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#fff',
+                            bodyColor: '#9ca3af',
+                            borderColor: 'rgba(255,255,255,0.08)',
+                            borderWidth: 1,
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: $${context.parsed.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '72%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

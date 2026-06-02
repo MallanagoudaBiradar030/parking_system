@@ -1,6 +1,144 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Parked Vehicles{% endblock %}
+
+{% block page_heading %}Currently Parked Vehicles{% endblock %}
+{% block page_subheading %}Real-time roster of all vehicles currently occupying parking slots{% endblock %}
 
 {% block content %}
-<h1>Currently Parked Vehicles</h1>
-<p>Parking records will appear here.</p>
+<div class="glass-card" style="display: flex; flex-direction: column;">
+    <div class="panel-header">
+        <h2><i class="fa-solid fa-car-side" style="color: var(--color-primary); margin-right: 8px;"></i> Active Parking Roster</h2>
+        <span class="badge badge-primary" style="font-size: 0.7rem;">
+            <i class="fa-solid fa-circle-dot"></i>
+            {{ parkers|length }} Vehicle(s) Active
+        </span>
+    </div>
+    
+    <!-- Search and Filter Bar -->
+    <div class="search-filter-bar">
+        <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="roster-search" class="form-control" placeholder="Search by license plate, owner, slot...">
+        </div>
+        <a href="{{ url_for('vehicle_entry') }}" class="btn-primary" style="padding: 10px 18px; font-size: 0.85rem; white-space: nowrap;">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>New Entry</span>
+        </a>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="table-container">
+        {% if parkers %}
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>License Plate</th>
+                        <th>Vehicle Type</th>
+                        <th>Owner Name</th>
+                        <th>Phone</th>
+                        <th>Slot Assigned</th>
+                        <th>Entry Time</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parker in parkers %}
+                        <tr>
+                            <td style="font-weight: 700; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">
+                                {{ parker.license_plate }}
+                            </td>
+                            <td>
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    {% if parker.vehicle_type == 'Car' %}
+                                        <i class="fa-solid fa-car-side" style="color: var(--color-primary); font-size: 1.1rem;"></i>
+                                    {% elif parker.vehicle_type == 'Bike' %}
+                                        <i class="fa-solid fa-motorcycle" style="color: var(--color-secondary); font-size: 1.1rem;"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-truck" style="color: var(--color-accent); font-size: 1.1rem;"></i>
+                                    {% endif %}
+                                    {{ parker.vehicle_type }}
+                                </span>
+                            </td>
+                            <td>{{ parker.owner_name }}</td>
+                            <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ parker.owner_phone }}</td>
+                            <td>
+                                <strong style="color: var(--color-secondary); font-family: 'Outfit', sans-serif; font-size: 1rem;">
+                                    {{ parker.slot_number }}
+                                </strong>
+                            </td>
+                            <td style="font-size: 0.85rem; color: var(--text-secondary);">
+                                {{ parker.entry_time }}
+                            </td>
+                            <td>
+                                <span class="badge badge-occupied" style="font-size: 0.65rem;" data-entry-time="{{ parker.entry_time }}">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span class="duration-display">Calculating...</span>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('vehicle_exit') }}" 
+                                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.75rem; font-weight: 600; color: var(--color-warning); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 6px; text-decoration: none; transition: var(--transition-smooth);"
+                                   title="Checkout this vehicle">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                    Checkout
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                <i class="fa-solid fa-car-burst" style="font-size: 3rem; opacity: 0.15; margin-bottom: 16px; display: block;"></i>
+                <h3 style="font-family: 'Outfit', sans-serif; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">No Vehicles Currently Parked</h3>
+                <p style="font-size: 0.9rem; max-width: 400px; margin: 0 auto 20px; line-height: 1.5;">
+                    The parking lot is currently empty. Register a new vehicle entry to begin tracking.
+                </p>
+                <a href="{{ url_for('vehicle_entry') }}" class="btn-primary" style="padding: 10px 20px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    <span>Register Vehicle Entry</span>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Live Duration Calculator for parked vehicles
+    document.addEventListener("DOMContentLoaded", () => {
+        const updateDurations = () => {
+            const badges = document.querySelectorAll("[data-entry-time]");
+            badges.forEach(badge => {
+                const entryTimeStr = badge.getAttribute("data-entry-time");
+                if (!entryTimeStr) return;
+                
+                const entryTime = new Date(entryTimeStr);
+                const now = new Date();
+                const diffSeconds = Math.max(0, Math.floor((now - entryTime) / 1000));
+                
+                let durationStr = "";
+                if (diffSeconds < 60) {
+                    durationStr = `${diffSeconds}s`;
+                } else if (diffSeconds < 3600) {
+                    const mins = Math.floor(diffSeconds / 60);
+                    durationStr = `${mins}m`;
+                } else {
+                    const hrs = Math.floor(diffSeconds / 3600);
+                    const mins = Math.floor((diffSeconds % 3600) / 60);
+                    durationStr = `${hrs}h ${mins}m`;
+                }
+                
+                const display = badge.querySelector(".duration-display");
+                if (display) display.textContent = durationStr;
+            });
+        };
+        
+        updateDurations();
+        setInterval(updateDurations, 30000); // Refresh every 30 seconds
+    });
+</script>
 {% endblock %}

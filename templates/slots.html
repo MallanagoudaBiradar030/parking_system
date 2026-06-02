@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Slots Map{% endblock %}
+
+{% block page_heading %}Parking Slots Map{% endblock %}
+{% block page_subheading %}Bird's-eye view of all physical parking slots and their live occupancy status{% endblock %}
+
+{% block content %}
+<!-- Quick Stats Summary -->
+{% set total_slots = slots|length %}
+{% set occupied_count = slots|selectattr('status', 'equalto', 'Occupied')|list|length %}
+{% set available_count = slots|selectattr('status', 'equalto', 'Available')|list|length %}
+
+<section class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="glass-card kpi-card total-slots">
+        <div class="kpi-info">
+            <h3>Total Capacity</h3>
+            <div class="kpi-value">{{ total_slots }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-warehouse"></i>
+        </div>
+    </div>
+    
+    <div class="glass-card kpi-card occupied-slots">
+        <div class="kpi-info">
+            <h3>Occupied</h3>
+            <div class="kpi-value">{{ occupied_count }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-car"></i>
+        </div>
+    </div>
+    
+    <div class="glass-card kpi-card available-slots">
+        <div class="kpi-info">
+            <h3>Available</h3>
+            <div class="kpi-value">{{ available_count }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-square-check"></i>
+        </div>
+    </div>
+</section>
+
+<!-- Legend Bar -->
+<div class="glass-card" style="padding: 14px 24px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+    <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-secondary);">
+        <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i> Legend:
+    </span>
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); border: 2px dashed rgba(16, 185, 129, 0.4); display: inline-block;"></span>
+        <span style="color: var(--color-success);">Available</span>
+    </span>
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); border: 2px solid rgba(239, 68, 68, 0.4); display: inline-block;"></span>
+        <span style="color: var(--color-danger);">Occupied</span>
+    </span>
+</div>
+
+<!-- Slot Category Grids -->
+<section class="slots-map-section">
+    
+    <!-- Category: Cars -->
+    {% set car_slots = slots|selectattr('slot_type', 'equalto', 'Car')|list %}
+    {% if car_slots %}
+    <div class="glass-card">
+        <div class="slot-category-block">
+            <div class="slot-category-title">
+                <i class="fa-solid fa-car-side" style="color: var(--color-primary);"></i>
+                Car Parking Zone
+                <span class="badge badge-primary" style="font-size: 0.65rem; margin-left: auto;">
+                    {{ car_slots|selectattr('status', 'equalto', 'Available')|list|length }} / {{ car_slots|length }} Free
+                </span>
+            </div>
+            <div class="slots-grid">
+                {% for slot in car_slots %}
+                    <div class="parking-slot-space {{ 'available' if slot.status == 'Available' else 'occupied' }}">
+                        <span class="slot-icon">
+                            {% if slot.status == 'Available' %}
+                                <i class="fa-solid fa-square-parking"></i>
+                            {% else %}
+                                <i class="fa-solid fa-car-side"></i>
+                            {% endif %}
+                        </span>
+                        <span class="slot-code">{{ slot.slot_number }}</span>
+                        <span class="slot-state-label">{{ slot.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Category: Bikes -->
+    {% set bike_slots = slots|selectattr('slot_type', 'equalto', 'Bike')|list %}
+    {% if bike_slots %}
+    <div class="glass-card">
+        <div class="slot-category-block">
+            <div class="slot-category-title">
+                <i class="fa-solid fa-motorcycle" style="color: var(--color-secondary);"></i>
+                Motorbike Parking Zone
+                <span class="badge badge-success" style="font-size: 0.65rem; margin-left: auto;">
+                    {{ bike_slots|selectattr('status', 'equalto', 'Available')|list|length }} / {{ bike_slots|length }} Free
+                </span>
+            </div>
+            <div class="slots-grid">
+                {% for slot in bike_slots %}
+                    <div class="parking-slot-space {{ 'available' if slot.status == 'Available' else 'occupied' }}">
+                        <span class="slot-icon">
+                            {% if slot.status == 'Available' %}
+                                <i class="fa-solid fa-square-parking"></i>
+                            {% else %}
+                                <i class="fa-solid fa-motorcycle"></i>
+                            {% endif %}
+                        </span>
+                        <span class="slot-code">{{ slot.slot_number }}</span>
+                        <span class="slot-state-label">{{ slot.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Category: Trucks -->
+    {% set truck_slots = slots|selectattr('slot_type', 'equalto', 'Truck')|list %}
+    {% if truck_slots %}
+    <div class="glass-card">
+        <div class="slot-category-block">
+            <div class="slot-category-title">
+                <i class="fa-solid fa-truck" style="color: var(--color-accent);"></i>
+                Heavy Vehicle Parking Zone
+                <span class="badge badge-occupied" style="font-size: 0.65rem; margin-left: auto;">
+                    {{ truck_slots|selectattr('status', 'equalto', 'Available')|list|length }} / {{ truck_slots|length }} Free
+                </span>
+            </div>
+            <div class="slots-grid">
+                {% for slot in truck_slots %}
+                    <div class="parking-slot-space {{ 'available' if slot.status == 'Available' else 'occupied' }}">
+                        <span class="slot-icon">
+                            {% if slot.status == 'Available' %}
+                                <i class="fa-solid fa-square-parking"></i>
+                            {% else %}
+                                <i class="fa-solid fa-truck"></i>
+                            {% endif %}
+                        </span>
+                        <span class="slot-code">{{ slot.slot_number }}</span>
+                        <span class="slot-state-label">{{ slot.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Empty State -->
+    {% if not slots %}
+    <div class="glass-card" style="text-align: center; padding: 60px 20px;">
+        <i class="fa-solid fa-grip" style="font-size: 3rem; opacity: 0.15; margin-bottom: 16px; display: block;"></i>
+        <h3 style="font-family: 'Outfit', sans-serif; font-weight: 600; margin-bottom: 8px;">No Slots Configured</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 400px; margin: 0 auto; line-height: 1.5;">
+            The parking lot has no physical slots configured yet. Initialize the database to populate slot data.
+        </p>
+    </div>
+    {% endif %}
+    
+</section>
+{% endblock %}
