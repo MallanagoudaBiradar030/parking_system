@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_heading %}Management Dashboard{% endblock %}
+{% block page_subheading %}Overview of live parking lot occupancy, capacity metrics, and recent activities{% endblock %}
+
+{% block content %}
+<!-- KPI Metrics Grid Cards -->
+<section class="kpi-grid">
+    
+    <!-- KPI Card 1: Total Slots -->
+    <div class="glass-card kpi-card total-slots">
+        <div class="kpi-info">
+            <h3>Total Capacity</h3>
+            <div class="kpi-value">{{ kpis.total }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-warehouse"></i>
+        </div>
+    </div>
+    
+    <!-- KPI Card 2: Occupied Slots -->
+    <div class="glass-card kpi-card occupied-slots">
+        <div class="kpi-info">
+            <h3>Occupied Spaces</h3>
+            <div class="kpi-value">{{ kpis.occupied }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-car"></i>
+        </div>
+    </div>
+    
+    <!-- KPI Card 3: Available Slots -->
+    <div class="glass-card kpi-card available-slots">
+        <div class="kpi-info">
+            <h3>Available Slots</h3>
+            <div class="kpi-value">{{ kpis.available }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-square-check"></i>
+        </div>
+    </div>
+    
+    <!-- KPI Card 4: Today's Revenue -->
+    <div class="glass-card kpi-card revenue-slots">
+        <div class="kpi-info">
+            <h3>Today's Earnings</h3>
+            <div class="kpi-value">${{ kpis.revenue|float|round(2) }}</div>
+        </div>
+        <div class="kpi-icon-box">
+            <i class="fa-solid fa-circle-dollar-to-slot"></i>
+        </div>
+    </div>
+</section>
+
+<!-- Dashboard Panels (Double Column layout) -->
+<section class="dashboard-row">
+    
+    <!-- Left Column: Recent Activity Logs Table -->
+    <div class="glass-card" style="display: flex; flex-direction: column;">
+        <div class="panel-header">
+            <h2>Recent Activity Logs</h2>
+            <a href="{{ url_for('currently_parked') }}" class="btn-primary" style="padding: 6px 12px; font-size: 0.75rem; font-weight: 500; border-radius: 6px; box-shadow: none;">
+                <span>View Full Roster</span>
+            </a>
+        </div>
+        
+        <div class="table-container">
+            {% if recent %}
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>License Plate</th>
+                            <th>Category</th>
+                            <th>Slot Assigned</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time / Fee</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in recent %}
+                            <tr>
+                                <td style="font-weight: 700; font-family: 'Outfit', sans-serif;">{{ row.license_plate }}</td>
+                                <td>
+                                    <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                        {% if row.vehicle_type == 'Car' %}
+                                            <i class="fa-solid fa-car-side" style="color: var(--color-primary);"></i>
+                                        {% elif row.vehicle_type == 'Bike' %}
+                                            <i class="fa-solid fa-motorcycle" style="color: var(--color-secondary);"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-truck" style="color: var(--color-accent);"></i>
+                                        {% endif %}
+                                        {{ row.vehicle_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: var(--color-secondary); font-family: 'Outfit', sans-serif;">{{ row.slot_number }}</strong>
+                                </td>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ row.entry_time }}</td>
+                                <td style="font-size: 0.85rem;">
+                                    {% if row.status == 'Completed' %}
+                                        <span style="color: var(--color-success); font-weight: 600;">${{ row.fee }}</span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted);">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if row.status == 'Active' %}badge-occupied{% else %}badge-success{% endif %}">
+                                        <i class="fa-solid {% if row.status == 'Active' %}fa-clock{% else %}fa-check-double{% endif %}"></i>
+                                        {{ row.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else: %}
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <i class="fa-solid fa-receipt" style="font-size: 2.5rem; opacity: 0.2; margin-bottom: 12px; display: block;"></i>
+                    No recent transaction logs found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Column: Visual Category Chart panel -->
+    <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
+        <div class="panel-header">
+            <h2>Occupancy Chart</h2>
+        </div>
+        
+        <!-- Canvas for Chart.js utilization details -->
+        <div style="position: relative; max-height: 220px; display: flex; align-items: center; justify-content: center; width: 100%;">
+            <canvas id="utilizationChart" style="max-height: 220px; max-width: 220px;"></canvas>
+        </div>
+        
+        <!-- Details listing -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            {% for row in utilization %}
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.03);">
+                    <span style="font-weight: 500;">
+                        <i class="fa-solid {% if row.slot_type == 'Car' %}fa-car-side{% elif row.slot_type == 'Bike' %}fa-motorcycle{% else %}fa-truck{% endif %}" style="margin-right: 6px; width: 16px;"></i>
+                        {{ row.slot_type }} Slots
+                    </span>
+                    <span style="color: var(--text-secondary);">
+                        <strong>{{ row.occupied_slots }}</strong>/{{ row.total_slots }} Space(s)
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Include Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const ctx = document.getElementById('utilizationChart').getContext('2d');
+        
+        // Data parsed from view context
+        const labels = [];
+        const occupied = [];
+        const available = [];
+        
+        {% for row in utilization %}
+            labels.push('{{ row.slot_type }}');
+            occupied.push({{ row.occupied_slots }});
+            available.push({{ row.available_slots }});
+        {% endfor %}
+        
+        // Calculate total occupied vs available across all categories
+        const totalOccupied = occupied.reduce((a, b) => a + b, 0);
+        const totalAvailable = available.reduce((a, b) => a + b, 0);
+        
+        // Create an elegant glassmorphic styled Doughnut Chart
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Occupied', 'Available'],
+                datasets: [{
+                    data: [totalOccupied, totalAvailable],
+                    backgroundColor: [
+                        '#ef4444', // Crimson Rose
+                        '#10b981'  // Mint Emerald
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.05)',
+                    borderWidth: 1,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#fff',
+                        bodyColor: '#9ca3af',
+                        borderColor: 'rgba(255,255,255,0.08)',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8,
+                        font: {
+                            family: 'Plus Jakarta Sans'
+                        }
+                    }
+                },
+                cutout: '75%'
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block clean_content %}
+<div class="login-wrapper">
+    <div class="login-container">
+        
+        <!-- Logo and Brand Brand Header -->
+        <div class="login-logo">
+            <div class="brand-icon">
+                <i class="fa-solid fa-square-parking"></i>
+            </div>
+            <h1>PARKEASE</h1>
+            <p>Parking Lot Database Management System</p>
+        </div>
+        
+        <!-- Flash Alert Box inside Login Context -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span><i class="fa-solid fa-triangle-exclamation"></i> &nbsp; {{ message }}</span>
+                            <button class="alert-close">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Premium Glassmorphic Login Form Panel -->
+        <div class="glass-card">
+            <form action="{{ url_for('login') }}" method="POST" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">Operator Username</label>
+                    <div style="position: relative;">
+                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin" required autofocus style="padding-left: 42px;">
+                        <i class="fa-solid fa-user" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Security Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="e.g. admin123" required style="padding-left: 42px;">
+                        <i class="fa-solid fa-key" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">
+                    <span>Access Operator Panel</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Student project info banner -->
+        <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; line-height: 1.5;">
+            DBMS Mini Project Submission<br>
+            <strong>Default Credentials:</strong> admin / admin123
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Vehicle Exit{% endblock %}
+
+{% block page_heading %}Vehicle Check-Out Exit{% endblock %}
+{% block page_subheading %}Release parked vehicles, calculate parking durations, and compute total fees dynamically{% endblock %}
+
+{% block content %}
+<div class="dashboard-row" style="grid-template-columns: 2fr 1fr;">
+    
+    <!-- Left Column: Check-out selector Form -->
+    <div class="glass-card">
+        <div class="panel-header">
+            <h2><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary); margin-right: 8px;"></i> Checkout Dispatch Desk</h2>
+        </div>
+        
+        <form action="{{ url_for('vehicle_exit') }}" method="POST">
+            <div class="form-group">
+                <label for="exit-transaction-select">Select Currently Parked Vehicle *</label>
+                <div style="position: relative;">
+                    <select id="exit-transaction-select" name="transaction_id" class="form-control" required style="padding-left: 42px; appearance: none; -webkit-appearance: none;">
+                        <option value="" disabled selected>Select License Plate / Slot</option>
+                        {% for parker in parkers %}
+                            <option value="{{ parker.transaction_id }}" 
+                                    data-plate="{{ parker.license_plate }}"
+                                    data-slot="{{ parker.slot_number }}"
+                                    data-type="{{ parker.vehicle_type }}"
+                                    data-entry-time="{{ parker.entry_time }}">
+                                🚗 {{ parker.license_plate }} &nbsp;|&nbsp; Slot: {{ parker.slot_number }} &nbsp;|&nbsp; Owner: {{ parker.owner_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <i class="fa-solid fa-list-check" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    <i class="fa-solid fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                </div>
+                <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 6px; display: block;">
+                    Only active transactions currently registered in slots are listed.
+                </small>
+            </div>
+            
+            <!-- Real-time Automatic Checkout Fee Estimator panel (Controlled by main.js) -->
+            <div id="fee-estimation-box" class="glass-card" style="display: none; background-color: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.2); margin: 25px 0;">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--color-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-receipt"></i> Real-time Fee Aggregator
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
+                    <div>
+                        <span style="color: var(--text-secondary);">License Plate:</span>
+                        <strong id="est-plate" style="color: white; margin-left: 6px; font-family: 'Outfit', sans-serif;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Slot Position:</span>
+                        <strong id="est-slot" style="color: var(--color-secondary); margin-left: 6px; font-family: 'Outfit', sans-serif;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Duration Stayed:</span>
+                        <strong id="est-duration" style="color: white; margin-left: 6px;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Hourly Rate:</span>
+                        <strong id="est-rate" style="color: white; margin-left: 6px;">-</strong>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; border-top: 1px dashed var(--glass-border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; font-size: 0.95rem;">Estimated Fee (Round Up):</span>
+                    <strong id="est-fee" style="font-size: 1.5rem; color: var(--color-success); font-family: 'Outfit', sans-serif;">$0.00</strong>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--color-danger), var(--color-accent)); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+                    <span>Confirm Dispatch & Checkout</span>
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Right Column: Business Tiers info card -->
+    <div class="glass-card" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="panel-header">
+            <h2>Pricing Models</h2>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+            Calculations are performed at atomic transactional levels inside standard SQL stored procedures on checkout confirmation.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border);">
+                <i class="fa-solid fa-motorcycle" style="font-size: 1.2rem; color: var(--color-success); width: 24px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block;">Two-Wheelers (Bikes)</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem;">$2.00 per hour</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border);">
+                <i class="fa-solid fa-car-side" style="font-size: 1.2rem; color: var(--color-primary); width: 24px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block;">Four-Wheelers (Cars)</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem;">$5.00 per hour</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border);">
+                <i class="fa-solid fa-truck" style="font-size: 1.2rem; color: var(--color-accent); width: 24px; text-align: center;"></i>
+                <div>
+                    <strong style="display: block;">Heavy Transport (Trucks)</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem;">$10.00 per hour</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background-color: rgba(245, 158, 11, 0.04); border: 1px dashed rgba(245, 158, 11, 0.2); padding: 12px; border-radius: 8px; font-size: 0.75rem; color: var(--color-warning); line-height: 1.4; display: flex; gap: 10px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1rem; margin-top: 2px;"></i>
+            <span>
+                <strong>Minimum Billing:</strong> All durations are rounded up to the nearest hour (e.g. 15 minutes of parking counts as 1 hour).
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

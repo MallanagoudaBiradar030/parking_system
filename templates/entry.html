@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Vehicle Entry{% endblock %}
+
+{% block page_heading %}Vehicle Check-In Entry{% endblock %}
+{% block page_subheading %}Register incoming vehicles and allocate an available parking slot automatically{% endblock %}
+
+{% block content %}
+<div class="dashboard-row" style="grid-template-columns: 2fr 1fr;">
+    
+    <!-- Left Column: Check-in Form -->
+    <div class="glass-card">
+        <div class="panel-header">
+            <h2><i class="fa-solid fa-file-signature" style="color: var(--color-primary); margin-right: 8px;"></i> Check-In Register Form</h2>
+        </div>
+        
+        <form action="{{ url_for('vehicle_entry') }}" method="POST" autocomplete="off">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="license_plate">License Plate Number *</label>
+                    <div style="position: relative;">
+                        <input type="text" id="license_plate" name="license_plate" class="form-control" placeholder="e.g. MH-12-AB-1234" required style="padding-left: 42px; text-transform: uppercase;">
+                        <i class="fa-solid fa-rectangle-ad" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">Standard regional license plate format.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vehicle_type">Vehicle Category *</label>
+                    <div style="position: relative;">
+                        <select id="vehicle_type" name="vehicle_type" class="form-control" required style="padding-left: 42px; appearance: none; -webkit-appearance: none;">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Bike">🏍️ Motorbike (Rate: $2.00/hr)</option>
+                            <option value="Car">🚗 Passenger Car (Rate: $5.00/hr)</option>
+                            <option value="Truck">🚛 Heavy Truck (Rate: $10.00/hr)</option>
+                        </select>
+                        <i class="fa-solid fa-list-ul" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <i class="fa-solid fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="owner_name">Owner's Full Name (Optional)</label>
+                    <div style="position: relative;">
+                        <input type="text" id="owner_name" name="owner_name" class="form-control" placeholder="e.g. Aditya Verma" style="padding-left: 42px;">
+                        <i class="fa-solid fa-user-tag" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="owner_phone">Owner's Mobile Phone (Optional)</label>
+                    <div style="position: relative;">
+                        <input type="tel" id="owner_phone" name="owner_phone" class="form-control" placeholder="e.g. 9876543210" style="padding-left: 42px;">
+                        <i class="fa-solid fa-phone" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn-primary">
+                    <span>Register and Allocate Slot</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Right Column: Real-time Live Slots Available sidebar status -->
+    <div class="glass-card" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="panel-header">
+            <h2>Capacity Status</h2>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+            Slots are assigned chronologically. Before checking in, verify that matching slots are available.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 10px;">
+            {% for row in slots_summary %}
+                <div class="glass-card" style="padding: 16px; background-color: rgba(0, 0, 0, 0.15); border-color: rgba(255,255,255,0.03); box-shadow: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid {% if row.slot_type == 'Car' %}fa-car-side{% elif row.slot_type == 'Bike' %}fa-motorcycle{% else %}fa-truck{% endif %}" style="color: var(--color-secondary);"></i>
+                            {{ row.slot_type }}s
+                        </span>
+                        
+                        {% if row.available_slots > 0 %}
+                            <span class="badge badge-success" style="font-size: 0.65rem;">Available</span>
+                        {% else %}
+                            <span class="badge badge-occupied" style="font-size: 0.65rem;">FULL</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                        <span>Available Space(s):</span>
+                        <strong style="color: {% if row.available_slots > 0 %}var(--color-success){% else %}var(--color-danger){% endif %};">
+                            {{ row.available_slots }} / {{ row.total_slots }}
+                        </strong>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - Parking Lot Management System</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- FontAwesome Vector Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Crafted Premium Styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    {% if session.get('user_id') %}
+    <!-- Main Application Shell Layout -->
+    <div class="app-container">
+        
+        <!-- Premium Fixed Navigation Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-square-parking"></i>
+                </div>
+                <div class="brand-name">PARKEASE</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <li class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <a href="{{ url_for('dashboard') }}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/entry' %}active{% endif %}">
+                    <a href="{{ url_for('vehicle_entry') }}">
+                        <i class="fa-solid fa-circle-arrow-right"></i>
+                        <span>Vehicle Entry</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/exit' %}active{% endif %}">
+                    <a href="{{ url_for('vehicle_exit') }}">
+                        <i class="fa-solid fa-circle-arrow-left"></i>
+                        <span>Vehicle Exit</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/slots' %}active{% endif %}">
+                    <a href="{{ url_for('slots_map') }}">
+                        <i class="fa-solid fa-grip"></i>
+                        <span>Slots Map</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/parked' %}active{% endif %}">
+                    <a href="{{ url_for('currently_parked') }}">
+                        <i class="fa-solid fa-car-side"></i>
+                        <span>Parked Roster</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/revenue' %}active{% endif %}">
+                    <a href="{{ url_for('revenue_report') }}">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        <span>Revenue Report</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/docs' %}active{% endif %}">
+                    <a href="{{ url_for('documentation') }}">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>Project Docs</span>
+                    </a>
+                </li>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span class="user-name">{{ session.get('full_name', 'Operator') }}</span>
+                    <span class="user-role">Operator</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn" title="Sign Out">
+                    <i class="fa-solid fa-power-off"></i>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Dynamic Mobile / Notifications Header -->
+            <header class="top-header">
+                <button class="mobile-nav-toggle" id="mobile-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                
+                <div class="page-title">
+                    <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subheading %}Overview of parking lot logistics and metrics{% endblock %}</p>
+                </div>
+            </header>
+            
+            <!-- Flash Message Toast/Alert Box System -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <span><i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% else %}fa-triangle-exclamation{% endif %}"></i> &nbsp; {{ message }}</span>
+                                <button class="alert-close">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Inherited Inner View Blocks -->
+            {% block content %}{% endblock %}
+            
+        </main>
+    </div>
+    
+    {% else %}
+        <!-- Session-less views (like clean Login view) -->
+        {% block clean_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Premium Javascript Operations Core -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
