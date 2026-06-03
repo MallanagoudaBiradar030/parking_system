@@ -228,7 +228,7 @@ def vehicle_exit():
         try:
             # CALL Stored Procedure: sp_check_out_vehicle
             # Parameters: IN p_transaction_id, OUT p_license_plate, OUT p_slot_number, OUT p_entry_time, OUT p_exit_time, OUT p_fee
-            proc_params = [int(transaction_id), '', '', None, None, 0.0]
+            proc_params = [int(transaction_id), '', '', '', '', 0.0]
             out_results = db.execute_stored_procedure('sp_check_out_vehicle', proc_params)
             
             plate = out_results[1]       # OUT p_license_plate

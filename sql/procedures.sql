@@ -33,15 +33,23 @@ CREATE PROCEDURE sp_park_vehicle (
     OUT p_slot_number VARCHAR(10),
     OUT p_transaction_id INT
 )
-proc_label: BEGIN
-    DECLARE v_vehicle_id INT;
-    DECLARE v_slot_id INT;
-    DECLARE v_active_count INT;
+BEGIN
+    DECLARE v_vehicle_id INT DEFAULT NULL;
+    DECLARE v_slot_id INT DEFAULT NULL;
+    DECLARE v_active_count INT DEFAULT 0;
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
 
     -- 1. Upsert Vehicle: Check if vehicle exists
-    SELECT vehicle_id INTO v_vehicle_id 
-    FROM vehicle 
-    WHERE license_plate = p_license_plate;
+    SELECT vehicle_id INTO v_vehicle_id
+    FROM vehicle
+    WHERE license_plate = p_license_plate
+    LIMIT 1;
+
+    IF v_not_found THEN
+        SET v_not_found = FALSE;
+        SET v_vehicle_id = NULL;
+    END IF;
 
     IF v_vehicle_id IS NULL THEN
         -- Insert new vehicle if not found
@@ -50,20 +58,19 @@ proc_label: BEGIN
         SET v_vehicle_id = LAST_INSERT_ID();
     ELSE
         -- Update details in case they changed
-        UPDATE vehicle 
+        UPDATE vehicle
         SET owner_name = p_owner_name, owner_phone = p_owner_phone
         WHERE vehicle_id = v_vehicle_id;
     END IF;
 
     -- 2. Prevent Double Parking: Check if already parked
-    SELECT COUNT(*) INTO v_active_count 
-    FROM parking_transaction 
+    SELECT COUNT(*) INTO v_active_count
+    FROM parking_transaction
     WHERE vehicle_id = v_vehicle_id AND status = 'Active';
 
     IF v_active_count > 0 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Vehicle is already checked into the parking lot.';
-        LEAVE proc_label;
     END IF;
 
     -- 3. Slot Assignment: Find first available slot of matching type
@@ -73,11 +80,14 @@ proc_label: BEGIN
     ORDER BY slot_number ASC
     LIMIT 1;
 
-    -- If no slot is available, raise error
+    IF v_not_found THEN
+        SET v_slot_id = NULL;
+        SET v_not_found = FALSE;
+    END IF;
+
     IF v_slot_id IS NULL THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'No available slots found for this vehicle type.';
-        LEAVE proc_label;
     END IF;
 
     -- 4. Create Transaction: Insert into transaction table
@@ -111,13 +121,15 @@ CREATE PROCEDURE sp_check_out_vehicle (
     OUT p_fee DECIMAL(10,2)
 )
 BEGIN
-    DECLARE v_status VARCHAR(20);
-    DECLARE v_entry_time DATETIME;
-    DECLARE v_vehicle_type VARCHAR(20);
-    DECLARE v_duration_seconds INT;
-    DECLARE v_hours INT;
-    DECLARE v_hourly_rate DECIMAL(10,2);
-    DECLARE v_slot_id INT;
+    DECLARE v_status VARCHAR(20) DEFAULT NULL;
+    DECLARE v_entry_time DATETIME DEFAULT NULL;
+    DECLARE v_vehicle_type VARCHAR(20) DEFAULT NULL;
+    DECLARE v_duration_seconds INT DEFAULT 0;
+    DECLARE v_hours INT DEFAULT 0;
+    DECLARE v_hourly_rate DECIMAL(10,2) DEFAULT 0.00;
+    DECLARE v_slot_id INT DEFAULT NULL;
+    DECLARE v_not_found BOOLEAN DEFAULT FALSE;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = TRUE;
 
     -- 1. Check if transaction exists and is active
     SELECT 
@@ -131,7 +143,13 @@ BEGIN
     INNER JOIN 
         parking_slot s ON t.slot_id = s.slot_id
     WHERE 
-        t.transaction_id = p_transaction_id;
+        t.transaction_id = p_transaction_id
+    LIMIT 1;
+
+    IF v_not_found THEN
+        SET v_not_found = FALSE;
+        SET v_status = NULL;
+    END IF;
 
     IF v_status IS NULL THEN
         SIGNAL SQLSTATE '45000'
